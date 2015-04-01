@@ -24,9 +24,7 @@
 
 import * as assert from 'power-assert'
 import parse from 'shift-parser'
-import codegen from "shift-codegen";
-import { LiteralStringExpression } from "shift-ast";
-import { replace, Syntax } from '../'
+import { replace, Syntax } from '../';
 
 describe('replace', () => {
     it('string literal', () => {
@@ -39,11 +37,11 @@ describe('replace', () => {
         let transformed = replace(tree, {
             enter(node, parent) {
                 if (node.type === Syntax.LiteralStringExpression) {
-                    return new LiteralStringExpression('ご注文はうさぎですか？');
+                    return { type: "LiteralStringExpression", value: 'ご注文はうさぎですか？' };
                 }
             }
         });
-        assert(codegen(transformed) === `function test(){console.log("ご注文はうさぎですか？")}`);
+        assert.equal(transformed.body.statements[0].body.statements[0].expression.arguments[0].value, 'ご注文はうさぎですか？');
     });
 });
 

@@ -22,63 +22,20 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-const SPEC = {
-  ArrayExpression: ['elements'],
-  AssignmentExpression: ['binding', 'expression'],
-  BinaryExpression: ['left', 'right'],
-  Block: ['statements'],
-  BlockStatement: ['block'],
-  BreakStatement: ['label'],
-  CallExpression: ['callee', 'arguments'],
-  CatchClause: ['binding', 'body'],
-  ComputedMemberExpression: ['object', 'expression'],
-  ConditionalExpression: ['test', 'consequent', 'alternate'],
-  ContinueStatement: ['label'],
-  DataProperty: ['name', 'expression'],
-  DebuggerStatement: [],
-  DoWhileStatement: ['body', 'test'],
-  EmptyStatement: [],
-  ExpressionStatement: ['expression'],
-  ForInStatement: ['left', 'right', 'body'],
-  ForStatement: ['init', 'test', 'update', 'body'],
-  FunctionBody: ['directives', 'statements'],
-  FunctionDeclaration: ['name', 'parameters', 'body'],
-  FunctionExpression: ['name', 'parameters', 'body'],
-  Getter: ['name', 'body'],
-  Identifier: [],
-  IdentifierExpression: ['identifier'],
-  IfStatement: ['test', 'consequent', 'alternate'],
-  LabeledStatement: ['label', 'body'],
-  LiteralBooleanExpression: [],
-  LiteralNullExpression: [],
-  LiteralNumericExpression: [],
-  LiteralRegExpExpression: [],
-  LiteralStringExpression: [],
-  NewExpression: ['callee', 'arguments'],
-  ObjectExpression: ['properties'],
-  PostfixExpression: ['operand'],
-  PrefixExpression: ['operand'],
-  PropertyName: [],
-  ReturnStatement: ['expression'],
-  Script: ['body'],
-  Setter: ['name', 'parameter', 'body'],
-  StaticMemberExpression: ['object', 'property'],
-  SwitchCase: ['test', 'consequent'],
-  SwitchDefault: ['consequent'],
-  SwitchStatement: ['discriminant', 'cases'],
-  SwitchStatementWithDefault: ['discriminant', 'preDefaultCases', 'defaultCase', 'postDefaultCases'],
-  ThisExpression: [],
-  ThrowStatement: ['expression'],
-  TryCatchStatement: ['body', 'catchClause'],
-  TryFinallyStatement: ['body', 'catchClause', 'finalizer'],
-  UnknownDirective: [],
-  UseStrictDirective: [],
-  VariableDeclaration: ['declarators'],
-  VariableDeclarationStatement: ['declaration'],
-  VariableDeclarator: ['binding', 'init'],
-  WhileStatement: ['test', 'body'],
-  WithStatement: ['object', 'body'],
-};
+"use strict";
+
+import shiftSpec from 'shift-spec';
+
+var SPEC = {};
+
+Object.keys(shiftSpec).forEach((specProperty) => {
+    var node = shiftSpec[specProperty];
+    SPEC[node.typeName] = node.fields.map(x => x.name);
+});
+
+// Need to explicitly set a 'Property' for the estraverse spec due to the logic it
+// uses to generalize properties
+SPEC.Property = ['name'];
 
 export default SPEC;
 

@@ -22,8 +22,10 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+import * as fs from 'fs';
+
 import * as assert from 'power-assert'
-import parse from 'shift-parser'
+import {parseScript, parseModule} from 'shift-parser'
 import { traverse } from '../'
 
 describe('traverse', () => {
@@ -33,7 +35,7 @@ describe('traverse', () => {
             console.log("HELLO WORLD");
         }
         `;
-        let tree = parse(code);
+        let tree = parseScript(code);
         let result = [];
         traverse(tree, {
             enter(node) {
@@ -41,18 +43,17 @@ describe('traverse', () => {
             }
         });
         assert.deepEqual(result, [
-            'Script',
-            'FunctionBody',
-            'FunctionDeclaration',
-            'Identifier',
-            'FunctionBody',
-            'ExpressionStatement',
-            'CallExpression',
-            'StaticMemberExpression',
-            'IdentifierExpression',
-            'Identifier',
-            'Identifier',
-            'LiteralStringExpression'
+            "Script",
+            "FunctionBody",
+            "FunctionDeclaration",
+            "BindingIdentifier",
+            "FormalParameters",
+            "FunctionBody",
+            "ExpressionStatement",
+            "CallExpression",
+            "StaticMemberExpression",
+            "IdentifierExpression",
+            "LiteralStringExpression"
         ]);
     });
 
@@ -62,7 +63,7 @@ describe('traverse', () => {
             console.log("HELLO WORLD");
         }
         `;
-        let tree = parse(code);
+        let tree = parseScript(code);
         let result = [];
         traverse(tree, {
             leave(node) {
@@ -70,18 +71,17 @@ describe('traverse', () => {
             }
         });
         assert.deepEqual(result, [
-            'Identifier',
-            'Identifier',
-            'IdentifierExpression',
-            'Identifier',
-            'StaticMemberExpression',
-            'LiteralStringExpression',
-            'CallExpression',
-            'ExpressionStatement',
-            'FunctionBody',
-            'FunctionDeclaration',
-            'FunctionBody',
-            'Script'
+            "BindingIdentifier",
+            "FormalParameters",
+            "IdentifierExpression",
+            "StaticMemberExpression",
+            "LiteralStringExpression",
+            "CallExpression",
+            "ExpressionStatement",
+            "FunctionBody",
+            "FunctionDeclaration",
+            "FunctionBody",
+            "Script"
         ]);
     });
 
@@ -91,7 +91,7 @@ describe('traverse', () => {
             console.log("HELLO WORLD");
         }
         `;
-        let tree = parse(code);
+        let tree = parseScript(code);
         let result = [];
         traverse(tree, {
             enter(node) {
@@ -103,32 +103,57 @@ describe('traverse', () => {
             }
         });
         assert.deepEqual(result, [
-            'enter:Script',
-            'enter:FunctionBody',
-            'enter:FunctionDeclaration',
-            'enter:Identifier',
-            'leave:Identifier',
-            'enter:FunctionBody',
-            'enter:ExpressionStatement',
-            'enter:CallExpression',
-            'enter:StaticMemberExpression',
-            'enter:IdentifierExpression',
-            'enter:Identifier',
-            'leave:Identifier',
-            'leave:IdentifierExpression',
-            'enter:Identifier',
-            'leave:Identifier',
-            'leave:StaticMemberExpression',
-            'enter:LiteralStringExpression',
-            'leave:LiteralStringExpression',
-            'leave:CallExpression',
-            'leave:ExpressionStatement',
-            'leave:FunctionBody',
-            'leave:FunctionDeclaration',
-            'leave:FunctionBody',
-            'leave:Script'
+            "enter:Script",
+            "enter:FunctionBody",
+            "enter:FunctionDeclaration",
+            "enter:BindingIdentifier",
+            "leave:BindingIdentifier",
+            "enter:FormalParameters",
+            "leave:FormalParameters",
+            "enter:FunctionBody",
+            "enter:ExpressionStatement",
+            "enter:CallExpression",
+            "enter:StaticMemberExpression",
+            "enter:IdentifierExpression",
+            "leave:IdentifierExpression",
+            "leave:StaticMemberExpression",
+            "enter:LiteralStringExpression",
+            "leave:LiteralStringExpression",
+            "leave:CallExpression",
+            "leave:ExpressionStatement",
+            "leave:FunctionBody",
+            "leave:FunctionDeclaration",
+            "leave:FunctionBody",
+            "leave:Script"
         ]);
     });
-})
+
+    it('should traverse es2015 modules', () => {
+        let code = fs.readFileSync('./node_modules/everything.js/es2015-module.js');
+        let tree = parseModule(code.toString());
+        let result = [];
+
+        traverse(tree, {
+            enter(node) {
+                result.push(node.type);
+            }
+        });
+        // not the best looking test but tests both that the number of nodes traversed doesn't decrease
+        // and that estraverse doesn't throw on any unfound nodes.
+        assert(result.length >= 1833);
+    });
+
+    it('should traverse es2015 scripts', () => {
+        let code = fs.readFileSync('./node_modules/everything.js/es2015-script.js');
+        let tree = parseScript(code.toString());
+        let result = [];
+        traverse(tree, {
+            enter(node) {
+                result.push(node.type);
+            }
+        });
+        assert(result.length >= 1224);
+    });
+});
 
 /* vim: set sw=4 ts=4 et tw=80 : */
