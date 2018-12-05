@@ -22,132 +22,198 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-import * as fs from 'fs'
-import * as assert from 'power-assert'
-import { parseScript, parseModule } from 'shift-parser'
-import { traverse } from '../'
+const fs = require("fs");
+const assert = require("assert");
+const { parseScript, parseModule } = require("shift-parser");
+const { reduce, adapt, PlusReducer } = require("shift-reducer");
 
-describe('traverse', () => {
-    it('enter', () => {
-        let code = `
+const { traverse } = require("../");
+
+function officialCount(tree) {
+  let reducer = adapt(data => data + 1, new PlusReducer());
+  return reduce(reducer, tree);
+}
+
+describe("traverse", () => {
+  it("enter", () => {
+    let code = `
         function test() {
             console.log("HELLO WORLD");
         }
         `;
-        let tree = parseScript(code);
-        let result = [];
-        traverse(tree, {
-            enter(node) {
-                result.push(node.type);
-            }
-        });
-        assert.deepEqual(result, [
-            'Script',
-            'FunctionDeclaration',
-            'BindingIdentifier',
-            'FormalParameters',
-            'FunctionBody',
-            'ExpressionStatement',
-            'CallExpression',
-            'StaticMemberExpression',
-            'IdentifierExpression',
-            'LiteralStringExpression'
-        ]);
+    let tree = parseScript(code);
+    let result = [];
+    traverse(tree, {
+      enter(node) {
+        result.push(node.type);
+      }
     });
+    assert.deepEqual(result, [
+      "Script",
+      "FunctionDeclaration",
+      "BindingIdentifier",
+      "FormalParameters",
+      "FunctionBody",
+      "ExpressionStatement",
+      "CallExpression",
+      "StaticMemberExpression",
+      "IdentifierExpression",
+      "LiteralStringExpression"
+    ]);
+  });
 
-    it('leave', () => {
-        let code = `
+  it("leave", () => {
+    let code = `
         function test() {
             console.log("HELLO WORLD");
         }
         `;
-        let tree = parseScript(code);
-        let result = [];
-        traverse(tree, {
-            leave(node) {
-                result.push(node.type);
-            }
-        });
-        assert.deepEqual(result, [
-            'BindingIdentifier',
-            'FormalParameters',
-            'IdentifierExpression',
-            'StaticMemberExpression',
-            'LiteralStringExpression',
-            'CallExpression',
-            'ExpressionStatement',
-            'FunctionBody',
-            'FunctionDeclaration',
-            'Script'
-        ]);
+    let tree = parseScript(code);
+    let result = [];
+    traverse(tree, {
+      leave(node) {
+        result.push(node.type);
+      }
     });
+    assert.deepEqual(result, [
+      "BindingIdentifier",
+      "FormalParameters",
+      "IdentifierExpression",
+      "StaticMemberExpression",
+      "LiteralStringExpression",
+      "CallExpression",
+      "ExpressionStatement",
+      "FunctionBody",
+      "FunctionDeclaration",
+      "Script"
+    ]);
+  });
 
-    it('both', () => {
-        let code = `
+  it("both", () => {
+    let code = `
         function test() {
             console.log("HELLO WORLD");
         }
         `;
-        let tree = parseScript(code);
-        let result = [];
-        traverse(tree, {
-            enter(node) {
-                result.push(`enter:${node.type}`);
-            },
+    let tree = parseScript(code);
+    let result = [];
+    traverse(tree, {
+      enter(node) {
+        result.push(`enter:${node.type}`);
+      },
 
-            leave(node) {
-                result.push(`leave:${node.type}`);
-            }
-        });
-        assert.deepEqual(result, [
-            'enter:Script',
-            'enter:FunctionDeclaration',
-            'enter:BindingIdentifier',
-            'leave:BindingIdentifier',
-            'enter:FormalParameters',
-            'leave:FormalParameters',
-            'enter:FunctionBody',
-            'enter:ExpressionStatement',
-            'enter:CallExpression',
-            'enter:StaticMemberExpression',
-            'enter:IdentifierExpression',
-            'leave:IdentifierExpression',
-            'leave:StaticMemberExpression',
-            'enter:LiteralStringExpression',
-            'leave:LiteralStringExpression',
-            'leave:CallExpression',
-            'leave:ExpressionStatement',
-            'leave:FunctionBody',
-            'leave:FunctionDeclaration',
-            'leave:Script'
-        ]);
+      leave(node) {
+        result.push(`leave:${node.type}`);
+      }
+    });
+    assert.deepEqual(result, [
+      "enter:Script",
+      "enter:FunctionDeclaration",
+      "enter:BindingIdentifier",
+      "leave:BindingIdentifier",
+      "enter:FormalParameters",
+      "leave:FormalParameters",
+      "enter:FunctionBody",
+      "enter:ExpressionStatement",
+      "enter:CallExpression",
+      "enter:StaticMemberExpression",
+      "enter:IdentifierExpression",
+      "leave:IdentifierExpression",
+      "leave:StaticMemberExpression",
+      "enter:LiteralStringExpression",
+      "leave:LiteralStringExpression",
+      "leave:CallExpression",
+      "leave:ExpressionStatement",
+      "leave:FunctionBody",
+      "leave:FunctionDeclaration",
+      "leave:Script"
+    ]);
+  });
+
+  it("should traverse es2015 modules", () => {
+    let code = fs.readFileSync(require.resolve("everything.js/es2015-module"));
+    let tree = parseModule(code.toString());
+    let result = [];
+
+    traverse(tree, {
+      enter(node) {
+        result.push(node.type);
+      }
     });
 
-    it('should traverse es2015 modules', () => {
-        let code = fs.readFileSync(require.resolve('everything.js/es2015-module'));
-        let tree = parseModule(code.toString());
-        let result = [];
+    let reducerCount = officialCount(tree);
+    assert(result.length === reducerCount);
+  });
 
-        traverse(tree, {
-            enter(node) {
-                result.push(node.type);
-            }
-        });
-        assert(result.length === 1772);
+  it("should traverse es2015 scripts", () => {
+    let code = fs.readFileSync(require.resolve("everything.js/es2015-script"));
+    let tree = parseScript(code.toString());
+    let result = [];
+    traverse(tree, {
+      enter(node) {
+        result.push(node.type);
+      }
     });
 
-    it('should traverse es2015 scripts', () => {
-        let code = fs.readFileSync(require.resolve('everything.js/es2015-script'));
-        let tree = parseScript(code.toString());
-        let result = [];
-        traverse(tree, {
-            enter(node) {
-                result.push(node.type);
-            }
-        });
-        assert(result.length === 1697);
+    let reducerCount = officialCount(tree);
+    assert(result.length === reducerCount);
+  });
+
+  it("should parse es2016-es2017 source", () => {
+    let src = `
+        async function a( // https://github.com/tc39/ecmascript-asyncawait
+            param, // https://github.com/tc39/proposal-trailing-function-commas
+        ) {
+            e **= g ** 2; // https://github.com/tc39/proposal-exponentiation-operator
+            await f(); // https://github.com/tc39/ecmascript-asyncawait
+        }
+      `;
+    let tree = parseScript(src);
+    let result = [];
+    traverse(tree, {
+      enter(node) {
+        result.push(node.type);
+      }
     });
 
+    let reducerCount = officialCount(tree);
+    assert(result.length === reducerCount);
+  });
+  it("should parse es2018 source", () => {
+    let src = `
+    // https://github.com/tc39/proposal-async-iteration
+    async function* createAsyncIterable(syncIterable) {
+        for await (const elem of syncIterable) {
+            yield elem;
+        }
+    }    
+    // https://github.com/tc39/proposal-object-rest-spread
+    // http://2ality.com/2016/10/rest-spread-properties.html
+    const {foo, ...rest} = obj;
+
+    // http://2ality.com/2017/05/regexp-named-capture-groups.html
+    // https://github.com/tc39/proposal-regexp-named-groups
+    const RE_DATE = /(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/;
+    const RE_TWICE = /^(?<word>[a-z]+)!\k<word>$/;
+
+    // http://2ality.com/2017/05/regexp-lookbehind-assertions.html
+    // https://github.com/tc39/proposal-regexp-lookbehind
+    const RE_AS_NO_BS = /aa(?!bb)/;
+    const RE_DOLLAR_PREFIX = /(?<=\$)foo/g;
+    const RE_NO_DOLLAR_PREFIX = /(?<!\$)foo/g;
+    `;
+    let tree = parseScript(src);
+    let result = [];
+    traverse(tree, {
+      enter(node) {
+        result.push(node.type);
+      }
+    });
+
+    let reducerCount = officialCount(tree);
+    assert(result.length === reducerCount);
+  });
 });
+
 
 /* vim: set sw=4 ts=4 et tw=80 : */

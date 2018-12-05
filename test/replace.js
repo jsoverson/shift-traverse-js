@@ -22,32 +22,34 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-import * as assert from 'power-assert'
-import parse from 'shift-parser'
-import codegen from "shift-codegen";
-import { replace, Syntax } from '../'
+const assert = require("assert");
+const { parseScript } = require("shift-parser");
+const codegen = require("shift-codegen").default;
+const { replace, Syntax } = require("../");
 
-describe('replace', () => {
-    it('string literal', () => {
-        let code = `
+describe("replace", () => {
+  it("string literal", () => {
+    let code = `
         function test() {
             console.log("HELLO WORLD");
         }
         `;
-        let tree = parse(code);
-        let transformed = replace(tree, {
-            enter(node, parent) {
-                if (node.type === Syntax.LiteralStringExpression) {
-                    return {
-                        type: 'LiteralStringExpression',
-                        value: 'ご注文はうさぎですか？'
-                    };
-                }
-            }
-        });
-        assert(codegen(transformed) === `function test(){console.log("ご注文はうさぎですか？")}`);
+    let tree = parseScript(code);
+    let transformed = replace(tree, {
+      enter(node, parent) {
+        if (node.type === Syntax.LiteralStringExpression) {
+          return {
+            type: "LiteralStringExpression",
+            value: "ご注文はうさぎですか？"
+          };
+        }
+      }
     });
+    assert(
+      codegen(transformed) ===
+        `function test(){console.log("ご注文はうさぎですか？")}`
+    );
+  });
 });
-
 
 /* vim: set sw=4 ts=4 et tw=80 : */

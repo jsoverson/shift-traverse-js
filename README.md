@@ -1,8 +1,11 @@
-Shift Traverse
+Shift Traverser
 ==============
 
 
 ## About
+
+This is a fork and update of Constellation's shift-traverse. Nothing has changed aside from it being 
+modernized and updated for Shift 2018.
 
 This module provides traversal functionality similar to [estraverse](https://github.com/estools/estraverse) for a [Shift format](https://github.com/shapesecurity/shift-spec) AST.
 
@@ -24,7 +27,6 @@ npm install shift-traverse
 
 ### traverse
 ```js
-// In ES6, but you can use it under ES5 environment.
 import {traverse} from "shift-traverse"
 
 traverse(tree, {

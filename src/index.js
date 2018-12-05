@@ -22,31 +22,38 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-import Spec from 'shift-spec'
-import * as objectAssign from 'object-assign'
-import { version } from '../package.json'
+const Spec = require("shift-spec").default;
+const { version } = require("../package.json");
 
 // Loading uncached estraverse for changing estraverse.Syntax.
-const estraverse = require('estraverse').cloneEnvironment();
+const estraverse = require("estraverse").cloneEnvironment();
 
 // Adjust estraverse members.
-
-Object.keys(estraverse.Syntax).filter(key => key !== 'Property').forEach((key) => {
+Object.keys(estraverse.Syntax)
+  .filter(key => key !== "Property")
+  .forEach(key => {
     delete estraverse.Syntax[key];
     delete estraverse.VisitorKeys[key];
-});
+  });
 
-objectAssign(estraverse.Syntax, Object.keys(Spec).reduce((result, key) => {
+Object.assign(
+  estraverse.Syntax,
+  Object.keys(Spec).reduce((result, key) => {
     result[key] = key;
     return result;
-}, {}));
+  }, {})
+);
 
-objectAssign(estraverse.VisitorKeys, Object.keys(Spec).reduce((result, key) => {
+Object.assign(
+  estraverse.VisitorKeys,
+  Object.keys(Spec).reduce((result, key) => {
     result[key] = Spec[key].fields.map(field => field.name);
     return result;
-}, {}));
+  }, {})
+);
 
 estraverse.version = version;
+
 module.exports = estraverse;
 
 /* vim: set sw=4 ts=4 et tw=80 : */
