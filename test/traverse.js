@@ -25,7 +25,15 @@
 import * as fs from 'fs'
 import * as assert from 'power-assert'
 import { parseScript, parseModule } from 'shift-parser'
+import Shift from 'shift-spec'
+import { reduce, adapt, PlusReducer } from 'shift-reducer';
 import { traverse } from '../'
+
+function officialCount(tree) {
+    let reducer = adapt(data => data + 1, new PlusReducer);
+    return reduce(reducer, tree);
+}
+  
 
 describe('traverse', () => {
     it('enter', () => {
@@ -133,7 +141,9 @@ describe('traverse', () => {
                 result.push(node.type);
             }
         });
-        assert(result.length === 1772);
+
+        let reducerCount = officialCount(tree);
+        assert(result.length === reducerCount);
     });
 
     it('should traverse es2015 scripts', () => {
@@ -145,9 +155,44 @@ describe('traverse', () => {
                 result.push(node.type);
             }
         });
-        assert(result.length === 1697);
+        
+        let reducerCount = officialCount(tree);
+        assert(result.length === reducerCount);
+    });
+
+    it('should parse es2016-es2018 source', () => {
+        let src = `
+        async function a( // https://github.com/tc39/ecmascript-asyncawait
+            param, // https://github.com/tc39/proposal-trailing-function-commas
+        ) {
+            e **= g ** 2; // https://github.com/tc39/proposal-exponentiation-operator
+            await f(); // https://github.com/tc39/ecmascript-asyncawait
+        }
+      `;
+      let tree = parseScript(src);
+      let result = [];
+      traverse(tree, {
+          enter(node) {
+              result.push(node.type);
+          }
+      });
+      
+      let reducerCount = officialCount(tree);
+      assert(result.length === reducerCount);
     });
 
 });
+
+
+function gatherNodes(src) {
+    let tree = parseScript(src);
+    let result = [];
+    traverse(tree, {
+        enter(node) {
+            result.push(node.type);
+        }
+    });
+    return result;
+}
 
 /* vim: set sw=4 ts=4 et tw=80 : */
