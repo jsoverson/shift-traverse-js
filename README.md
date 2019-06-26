@@ -27,7 +27,7 @@ npm install shift-traverser
 
 ### traverse
 ```js
-import {traverse} from "shift-traverse"
+import {traverse} from "shift-traverser"
 
 traverse(tree, {
     enter(node) {
