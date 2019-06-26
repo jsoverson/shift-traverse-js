@@ -1,6 +1,6 @@
 {
   "name": "shift-traverser",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Traversal functionality for the Shift AST format",
   "author": "Yusuke SUZUKI",
   "homepage": "https://github.com/jsoverson/shift-traverse-js",
