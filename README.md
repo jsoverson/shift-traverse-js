@@ -19,7 +19,7 @@ This module provides traversal functionality similar to [estraverse](https://git
 ## Installation
 
 ```sh
-npm install shift-traverse
+npm install shift-traverser
 ```
 
 
